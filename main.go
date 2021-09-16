@@ -52,6 +52,9 @@ func init() {
 			lit.Error("Error opening db connection, %s", err)
 			return
 		}
+
+		// Creates table used to store everything
+		execQuery(tblUsers)
 	}
 }
 

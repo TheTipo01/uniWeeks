@@ -2,6 +2,18 @@ package main
 
 import "github.com/bwmarrin/lit"
 
+const (
+	tblUsers = "CREATE TABLE IF NOT EXISTS `users` ( `id` bigint(20) unsigned NOT NULL, `even` tinyint(1) NOT NULL, PRIMARY KEY (`id`) );"
+)
+
+// Executes a simple query
+func execQuery(query string) {
+	_, err := db.Exec(query)
+	if err != nil {
+		lit.Error("Error executing query: " + err.Error())
+	}
+}
+
 func updateDB(id int, even bool) {
 	var savedEven bool
 
