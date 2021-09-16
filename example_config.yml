@@ -1,0 +1,10 @@
+#Example configuration file, remember to remove "example_" from the file after adding your tokens!
+
+# Telegram bot token, get one from @BotFather
+token:
+
+#Log level. Possible value are error, warning, informational and debug
+loglevel: informational
+
+#Database connection to mysql, format: user:pass@tcp(ip:3306)/database
+database:
