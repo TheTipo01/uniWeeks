@@ -1,6 +1,8 @@
 package main
 
-import "github.com/bwmarrin/lit"
+import (
+	"github.com/bwmarrin/lit"
+)
 
 const (
 	tblUsers = "CREATE TABLE IF NOT EXISTS `users` ( `id` bigint(20) unsigned NOT NULL, `even` tinyint(1) NOT NULL, PRIMARY KEY (`id`) );"
@@ -15,29 +17,47 @@ func execQuery(query string) {
 }
 
 func updateDB(id int, even bool) {
-	var savedEven bool
-
-	err := db.QueryRow("SELECT even FROM users WHERE id = ?", id).Scan(&savedEven)
-	// The user is new, add line
-	if err != nil {
-		_, err = db.Exec("INSERT INTO users(id, even) VALUES (?, ?)", id, even)
+	if val, ok := cache[id]; !ok {
+		// The user is new, add line
+		_, err := db.Exec("INSERT INTO users(id, even) VALUES (?, ?)", id, even)
 		if err != nil {
 			lit.Error("Error adding user: " + err.Error())
 		}
-		return
-	}
 
-	// Else if option are different, update db
-	if even != savedEven {
-		_, err = db.Exec("UPDATE users SET even = ? WHERE id = ?", even, id)
-		if err != nil {
-			lit.Error("Error updating user: " + err.Error())
+		cache[id] = even
+	} else {
+		// Else if option are different, update db
+		if even != val {
+			_, err := db.Exec("UPDATE users SET even = ? WHERE id = ?", even, id)
+			if err != nil {
+				lit.Error("Error updating user: " + err.Error())
+			}
+
+			cache[id] = even
 		}
-		return
 	}
 }
 
 // Deletes the user from the database
 func deleteFromDB(id int) {
 	_, _ = db.Exec("DELETE FROM users WHERE id = ?", id)
+	delete(cache, id)
+}
+
+func loadCache() {
+	var (
+		id       int
+		userEven bool
+	)
+	rows, err := db.Query("SELECT id, even FROM users")
+	if err != nil {
+		lit.Error("Error while querying db: " + err.Error())
+		return
+	}
+
+	// Iterate every user
+	for rows.Next() {
+		_ = rows.Scan(&id, &userEven)
+		cache[id] = userEven
+	}
 }

@@ -15,6 +15,7 @@ import (
 var (
 	token string
 	db    *sql.DB
+	cache = make(map[int]bool)
 )
 
 func init() {
@@ -55,6 +56,7 @@ func init() {
 
 		// Creates table used to store everything
 		execQuery(tblUsers)
+		loadCache()
 	}
 }
 
@@ -108,48 +110,32 @@ func main() {
 
 	// /quando command to know if in the current week you can go to lessons physically
 	b.Handle("/quando", func(m *tb.Message) {
-		var userEven bool
-		err := db.QueryRow("SELECT even FROM users WHERE id = ?", m.Sender.ID).Scan(&userEven)
-		if err != nil {
+		if val, ok := cache[m.Sender.ID]; ok {
+			// User exists in cache
+			_, week := time.Now().ISOWeek()
+			weekEven := week%2 == 0
+			strWeekEven := strconv.Itoa(week)
+
+			_, _ = b.Send(m.Sender, createMessage(val, weekEven, strWeekEven, "Questa settimana"))
+		} else {
 			_, _ = b.Send(m.Sender, "Non hai ancora configurato se sei pari o dispari! Usa la tastiera qui sotto per farlo")
-			return
 		}
-
-		_, week := time.Now().ISOWeek()
-		weekEven := week%2 == 0
-		strWeekEven := strconv.Itoa(week)
-
-		_, _ = b.Send(m.Sender, createMessage(userEven, weekEven, strWeekEven, "Questa settimana"))
 	})
 
 	// Cronjob, to send messages every sunday afternoon
 	loc, err := time.LoadLocation("Europe/Rome")
 	c := cron.New(cron.WithLocation(loc))
 	_, _ = c.AddFunc("0 18 * * 0", func() {
-		rows, err := db.Query("SELECT id, even FROM users")
-		if err != nil {
-			lit.Error("Error while querying db for weekly message: " + err.Error())
-			return
-		}
-
 		// Calculate the current week
 		_, week := time.Now().Add(time.Hour * 168).ISOWeek()
 		weekEven := week%2 == 0
 		strWeekEven := strconv.Itoa(week)
 
 		// Iterate every user
-		for rows.Next() {
-			var (
-				id       int
-				userEven bool
-			)
-			_ = rows.Scan(&id, &userEven)
-
+		for id, userEven := range cache {
 			user := &tb.User{ID: id}
 			_, _ = b.Send(user, createMessage(userEven, weekEven, strWeekEven, "Da domani"))
 		}
-
-		_ = rows.Close()
 	})
 	c.Start()
 
