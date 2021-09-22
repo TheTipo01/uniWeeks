@@ -116,7 +116,7 @@ func main() {
 			weekEven := week%2 == 0
 			strWeekEven := strconv.Itoa(week)
 
-			_, _ = b.Send(m.Sender, createMessage(val, weekEven, strWeekEven, "Questa settimana"))
+			_, _ = b.Send(m.Sender, createMessage(val, weekEven, strWeekEven, "Questa settimana"), tb.ModeMarkdown)
 		} else {
 			_, _ = b.Send(m.Sender, "Non hai ancora configurato se sei pari o dispari! Usa la tastiera qui sotto per farlo")
 		}
@@ -134,7 +134,7 @@ func main() {
 		// Iterate every user
 		for id, userEven := range cache {
 			user := &tb.User{ID: id}
-			_, _ = b.Send(user, createMessage(userEven, weekEven, strWeekEven, "Da domani"))
+			_, _ = b.Send(user, createMessage(userEven, weekEven, strWeekEven, "Da domani"), tb.ModeMarkdown)
 		}
 	})
 	c.Start()
@@ -163,7 +163,7 @@ func createMessage(userEven bool, weekEven bool, strWeekEven string, base string
 		}
 	}
 
-	out += "puoi andare in presenza, perchè è la settimana numero " + strWeekEven + "\nRicordati di prenotare le lezioni su Student Booking"
+	out += "puoi andare in presenza, perchè è la settimana numero " + strWeekEven + "\nRicordati di prenotare le lezioni su [Student Booking](https://unito.sbk.cineca.it/)"
 
 	return out
 }
