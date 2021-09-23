@@ -125,7 +125,8 @@ func main() {
 	// Cronjob, to send messages every sunday afternoon
 	loc, err := time.LoadLocation("Europe/Rome")
 	c := cron.New(cron.WithLocation(loc))
-	_, _ = c.AddFunc("0 18 * * 0", func() {
+	// At 18:00 on Saturday
+	_, _ = c.AddFunc("0 18 * * 6", func() {
 		// Calculate the current week
 		_, week := time.Now().Add(time.Hour * 168).ISOWeek()
 		weekEven := week%2 == 0
