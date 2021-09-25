@@ -135,12 +135,12 @@ func main() {
 		// Iterate every user
 		for id, userEven := range cache {
 			user := &tb.User{ID: id}
-			_, _ = b.Send(user, createMessage(userEven, weekEven, strWeekEven, "Da domani"), tb.ModeMarkdown)
+			_, _ = b.Send(user, createMessage(userEven, weekEven, strWeekEven, "La settimana prossima"), tb.ModeMarkdown)
 		}
 	})
 	c.Start()
 
-	// Starts thg bot
+	// Starts the bot
 	lit.Info("uniWeeks is now running")
 	b.Start()
 }
@@ -164,7 +164,7 @@ func createMessage(userEven bool, weekEven bool, strWeekEven string, base string
 		}
 	}
 
-	out += "puoi andare in presenza, perchè è la settimana numero " + strWeekEven + "\nRicordati di prenotare le lezioni su [Student Booking](https://unito.sbk.cineca.it/)"
+	out += "puoi andare in presenza, perchè è la numero " + strWeekEven + "\nRicordati di prenotare le lezioni su [Student Booking](https://unito.sbk.cineca.it/)"
 
 	return out
 }
