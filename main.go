@@ -4,60 +4,62 @@ import (
 	"database/sql"
 	"github.com/bwmarrin/lit"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/kkyr/fig"
 	"github.com/robfig/cron/v3"
-	"github.com/spf13/viper"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"strconv"
 	"strings"
 	"time"
 )
 
+// Config holds data parsed from the config.yml
+type Config struct {
+	Token    string `fig:"token" validate:"required"`
+	DSN      string `fig:"database" validate:"required"`
+	LogLevel string `fig:"loglevel" validate:"required"`
+}
+
 var (
 	token string
 	db    *sql.DB
-	cache = make(map[int]bool)
+	cache = make(map[int64]bool)
 )
 
 func init() {
 	lit.LogLevel = lit.LogError
 
-	viper.SetConfigName("config")
-	viper.SetConfigType("yml")
-	viper.AddConfigPath(".")
-
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found
-			lit.Error("Config file not found! See example_config.yml")
-			return
-		}
-	} else {
-		// Config file found
-		token = viper.GetString("token")
-
-		// Set lit.LogLevel to the given value
-		switch strings.ToLower(viper.GetString("loglevel")) {
-		case "logwarning", "warning":
-			lit.LogLevel = lit.LogWarning
-
-		case "loginformational", "informational":
-			lit.LogLevel = lit.LogInformational
-
-		case "logdebug", "debug":
-			lit.LogLevel = lit.LogDebug
-		}
-
-		// Open database connection
-		db, err = sql.Open("mysql", viper.GetString("database"))
-		if err != nil {
-			lit.Error("Error opening db connection, %s", err)
-			return
-		}
-
-		// Creates table used to store everything
-		execQuery(tblUsers)
-		loadCache()
+	var cfg Config
+	err := fig.Load(&cfg, fig.File("config.yml"))
+	if err != nil {
+		lit.Error(err.Error())
+		return
 	}
+
+	// Config file found
+	token = cfg.Token
+
+	// Set lit.LogLevel to the given value
+	switch strings.ToLower(cfg.LogLevel) {
+	case "logwarning", "warning":
+		lit.LogLevel = lit.LogWarning
+
+	case "loginformational", "informational":
+		lit.LogLevel = lit.LogInformational
+
+	case "logdebug", "debug":
+		lit.LogLevel = lit.LogDebug
+	}
+
+	// Open database connection
+	db, err = sql.Open("mysql", cfg.DSN)
+	if err != nil {
+		lit.Error("Error opening db connection, %s", err)
+		return
+	}
+
+	// Creates table used to store everything
+	execQuery(tblUsers)
+	loadCache()
 }
 
 func main() {

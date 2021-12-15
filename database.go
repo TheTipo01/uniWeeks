@@ -16,7 +16,7 @@ func execQuery(query string) {
 	}
 }
 
-func updateDB(id int, even bool) {
+func updateDB(id int64, even bool) {
 	if val, ok := cache[id]; !ok {
 		// The user is new, add line
 		_, err := db.Exec("INSERT INTO users(id, even) VALUES (?, ?)", id, even)
@@ -39,14 +39,14 @@ func updateDB(id int, even bool) {
 }
 
 // Deletes the user from the database
-func deleteFromDB(id int) {
+func deleteFromDB(id int64) {
 	_, _ = db.Exec("DELETE FROM users WHERE id = ?", id)
 	delete(cache, id)
 }
 
 func loadCache() {
 	var (
-		id       int
+		id       int64
 		userEven bool
 	)
 	rows, err := db.Query("SELECT id, even FROM users")
