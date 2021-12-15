@@ -17,7 +17,7 @@ type Config struct {
 	Token         string `fig:"token" validate:"required"`
 	DSN           string `fig:"database" validate:"required"`
 	LogLevel      string `fig:"loglevel" validate:"required"`
-	Notifications bool   `fig:"notifications" validate:"required"`
+	Notifications bool   `fig:"notifications"`
 }
 
 var (
