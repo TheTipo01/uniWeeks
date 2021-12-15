@@ -14,15 +14,17 @@ import (
 
 // Config holds data parsed from the config.yml
 type Config struct {
-	Token    string `fig:"token" validate:"required"`
-	DSN      string `fig:"database" validate:"required"`
-	LogLevel string `fig:"loglevel" validate:"required"`
+	Token         string `fig:"token" validate:"required"`
+	DSN           string `fig:"database" validate:"required"`
+	LogLevel      string `fig:"loglevel" validate:"required"`
+	Notifications bool   `fig:"notifications" validate:"required"`
 }
 
 var (
-	token string
-	db    *sql.DB
-	cache = make(map[int64]bool)
+	token         string
+	db            *sql.DB
+	cache         = make(map[int64]bool)
+	notifications bool
 )
 
 func init() {
@@ -35,7 +37,7 @@ func init() {
 		return
 	}
 
-	// Config file found
+	notifications = cfg.Notifications
 	token = cfg.Token
 
 	// Set lit.LogLevel to the given value
@@ -124,23 +126,29 @@ func main() {
 		}
 	})
 
-	// Cronjob, to send messages every sunday afternoon
-	loc, err := time.LoadLocation("Europe/Rome")
-	c := cron.New(cron.WithLocation(loc))
-	// At 18:00 on Saturday
-	_, _ = c.AddFunc("0 18 * * 6", func() {
-		// Calculate the current week
-		_, week := time.Now().Add(time.Hour * 168).ISOWeek()
-		weekEven := week%2 == 0
-		strWeekEven := strconv.Itoa(week)
+	if notifications {
+		lit.Info("Notifications are enabled!")
 
-		// Iterate every user
-		for id, userEven := range cache {
-			user := &tb.User{ID: id}
-			_, _ = b.Send(user, createMessage(userEven, weekEven, strWeekEven, "La settimana prossima"), tb.ModeMarkdown)
-		}
-	})
-	c.Start()
+		// Cronjob, to send messages every sunday afternoon
+		loc, _ := time.LoadLocation("Europe/Rome")
+		c := cron.New(cron.WithLocation(loc))
+		// At 18:00 on Saturday
+		_, _ = c.AddFunc("0 18 * * 6", func() {
+			// Calculate the current week
+			_, week := time.Now().Add(time.Hour * 168).ISOWeek()
+			weekEven := week%2 == 0
+			strWeekEven := strconv.Itoa(week)
+
+			// Iterate every user
+			for id, userEven := range cache {
+				user := &tb.User{ID: id}
+				_, _ = b.Send(user, createMessage(userEven, weekEven, strWeekEven, "La settimana prossima"), tb.ModeMarkdown)
+			}
+		})
+		c.Start()
+	} else {
+		lit.Info("Notifications are disabled!")
+	}
 
 	// Starts the bot
 	lit.Info("uniWeeks is now running")
