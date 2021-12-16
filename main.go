@@ -97,18 +97,18 @@ func main() {
 
 	// Buttons
 	b.Handle(&btnEven, func(m *tb.Message) {
-		_, _ = b.Send(m.Sender, "Perfetto! Ti avvisero ogni settimana pari!\nSe vuoi cambiare selezione, riapri la tastiera\n\nRicordati che puoi usare il comando /quando per sapere se questa settimana puoi andare o no")
+		_, _ = b.Send(m.Sender, "Perfetto! Ti avviserò ogni settimana pari!\nSe vuoi cambiare selezione, riapri la tastiera\n\nRicordati che puoi usare il comando /quando per sapere se questa settimana puoi andare o no")
 		updateDB(m.Sender.ID, true)
 	})
 
 	b.Handle(&btnOdd, func(m *tb.Message) {
-		_, _ = b.Send(m.Sender, "Perfetto! Ti avvisero ogni settimana dispari!\nSe vuoi cambiare selezione, riapri la tastiera\n\nRicordati che puoi usare il comando /quando per sapere se questa settimana puoi andare o no")
+		_, _ = b.Send(m.Sender, "Perfetto! Ti avviserò ogni settimana dispari!\nSe vuoi cambiare selezione, riapri la tastiera\n\nRicordati che puoi usare il comando /quando per sapere se questa settimana puoi andare o no")
 		updateDB(m.Sender.ID, false)
 	})
 
 	// /disabilita command to delete the user from the DB
 	b.Handle("/disabilita", func(m *tb.Message) {
-		_, _ = b.Send(m.Sender, "Non ti inviero più messaggi!")
+		_, _ = b.Send(m.Sender, "Non ti invierò più messaggi!")
 		deleteFromDB(m.Sender.ID)
 	})
 
@@ -174,7 +174,7 @@ func createMessage(userEven bool, weekEven bool, strWeekEven string, base string
 		}
 	}
 
-	out += "puoi andare in presenza, perchè è la numero " + strWeekEven + "\nRicordati di prenotare le lezioni su [Student Booking](https://unito.sbk.cineca.it/)"
+	out += "puoi andare in presenza, perché è la numero " + strWeekEven + "\nRicordati di prenotare le lezioni su [Student Booking](https://unito.sbk.cineca.it/)"
 
 	return out
 }
